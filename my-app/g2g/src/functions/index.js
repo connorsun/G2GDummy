@@ -28,6 +28,27 @@ exports.helloConner = onRequest((request, response) => {
   response.send("Hello Conner from Alec");
 });
 
+// write to database
+exports.writeDB = onRequest((request, response) => {
+  const body = request["body"];
+  // sanitize request
+  if (body == null) {
+    response.send({status: 400, err: "missing request body"});
+    return;
+  }
+  const id = body["userID"];
+  if (id == null) {
+    response.send({status: 400, err: "missing request userID"});
+    return;
+  }
+  const data = body["data"];
+  const database = firebaseAdmin.database();
+  database.ref("users/" + id).set({
+    data: data,
+  });
+  response.send({status: 200});
+});
+
 // Listens for new messages added to /messages/:documentId/original
 // and saves an uppercased version of the message
 // to /messages/:documentId/uppercase
