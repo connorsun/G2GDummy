@@ -23,6 +23,11 @@ exports.helloWorld = onRequest((request, response) => {
   response.send("Hello from Firebase!");
 });
 
+exports.helloConner = onRequest((request, response) => {
+  logger.info("Hello Alec!", {structuredData: true});
+  response.send("Hello Conner from Alec");
+});
+
 // Listens for new messages added to /messages/:documentId/original
 // and saves an uppercased version of the message
 // to /messages/:documentId/uppercase
