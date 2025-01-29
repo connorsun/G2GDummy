@@ -38,10 +38,16 @@ exports.writeDB = onRequest((request, response) => {
   }
   const id = body["userID"];
   if (id == null) {
+    logger.info(JSON.stringify(body), {structuredData: true});
     response.send({status: 400, err: "missing request userID"});
     return;
   }
   const data = body["data"];
+  if (data == null) {
+    logger.info(JSON.stringify(body), {structuredData: true});
+    response.send({status: 400, err: "missing request data"});
+    return;
+  }
   const database = firebaseAdmin.database();
   database.ref("users/" + id).set({
     data: data,
