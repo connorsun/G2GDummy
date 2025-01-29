@@ -29,7 +29,7 @@ exports.helloConner = onRequest((request, response) => {
 });
 
 // write to database
-exports.writeDB = onRequest((request, response) => {
+exports.writeDB = onRequest({cors: true}, (request, response) => {
   const body = request["body"];
   // sanitize request
   if (body == null) {

@@ -3,6 +3,7 @@ import './App.css';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import fetch from 'node-fetch';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -21,12 +22,24 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const firebaseURL = "https://us-central1-got2go-b8322.cloudfunctions.net/";
+
 
 function App() {
+  const handleWrite = () => {
+    fetch(firebaseURL + "writeDB", {method: "POST",
+      body: JSON.stringify({userID: 5, data:{hi: "alec"}}), 
+      headers: {"Content-Type": "application/json"}
+    }).then(response => {alert("Written!"); console.log(response);})
+    .catch(error => {console.log(error);});
+  };
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+        <button type="button" onClick={handleWrite}>
+          Write to Database
+        </button>
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
