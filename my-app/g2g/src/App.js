@@ -28,7 +28,7 @@ const firebaseURL = "https://us-central1-got2go-b8322.cloudfunctions.net/";
 function App() {
   const handleWrite = () => {
     fetch(firebaseURL + "writeDB", {method: "POST",
-      body: JSON.stringify({userID: 5, data:{hi: "alec"}}), 
+      body: JSON.stringify({userID: 0, data: {day: "tuesday"}}), 
       headers: {"Content-Type": "application/json"}
     }).then(response => {alert("Written!"); console.log(response);})
     .catch(error => {console.log(error);});
