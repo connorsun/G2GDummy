@@ -28,31 +28,88 @@ exports.helloConner = onRequest((request, response) => {
   response.send("Hello Conner from Alec");
 });
 
-// write to database
-exports.writeDB = onRequest({cors: true}, (request, response) => {
-  const body = request["body"];
-  // sanitize request
-  if (body == null) {
-    response.send({status: 400, err: "missing request body"});
-    return;
+function fail(body, message) {
+  logger.info(JSON.stringify(body), {structuredData: true});
+  response.send({status: 400, err: message});
+}
+
+async function getUid(authToken) {
+  let adminApp = firebaseAdmin.initializeApp({credential: firebaseAdmin.credential.cert(serviceAccount)}, 'admin');
+  const uinfo = await adminApp.auth().verifyIdToken(authToken);
+  return uinfo.uid;
+}
+
+function writeCal(authToken, data) {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  for (let day of days) {
+    if (data[day] === undefined) {
+      fail("malformed request: cal req is missing day " + day);
+      return;
+    }
   }
-  const id = body["userID"];
-  if (id == null) {
-    logger.info(JSON.stringify(body), {structuredData: true});
-    response.send({status: 400, err: "missing request userID"});
-    return;
-  }
-  const data = body["data"];
-  if (data == null) {
-    logger.info(JSON.stringify(body), {structuredData: true});
-    response.send({status: 400, err: "missing request data"});
-    return;
-  }
+  // later when we set up auth:
+  // const uid = getUid(authToken);
+
+  // for now: have users manually send auth tokens
+  const uid = authToken;
   const database = firebaseAdmin.database();
-  database.ref("users/" + id).set({
+  database.ref("users/" + uid).set({
     data: data,
   });
   response.send({status: 200});
+}
+
+function writeInfo(authToken, data) {
+  const infoFields = ["name", "deviceID"];
+  for (let field of infoFields) {
+    if (data[field] === undefined) {
+      fail("malformed request: info req is missing field " + field);
+      return;
+    }
+  }
+  // later when we set up auth:
+  // const uid = getUid(authToken);
+
+  // for now: have users manually send auth tokens
+  const uid = authToken;
+  const database = firebaseAdmin.database();
+  database.ref("users/" + uid).set({
+    data: data,
+  });
+  response.send({status: 200});
+}
+
+// write to database
+exports.writeDB = onRequest({cors: true}, async (request, response) => {
+  const body = request["body"];
+  // sanitize request
+  if (body === undefined) {
+    response.send({status: 400, err: "missing request body"});
+    return;
+  }
+  const authToken = body["userAuthToken"];
+  if (authToken === undefined) {
+    fail(body, "missing request authentication token");
+    return;
+  }
+  const data = body["data"];
+  if (data === undefined) {
+    fail(body, "missing request data");
+    return;
+  }
+  const reqType = body["reqType"]; // write to calendar or user info?
+  if (reqType === undefined) {
+    fail(body, "undefined request type");
+    return;
+  }
+  if (reqType === "calendar") {
+    writeCal(authToken, data);
+  } else if (reqType === "info") {
+    writeInfo(authToken, data);
+  } else {
+    fail(body, "invalid request type: " + reqType);
+    return;
+  }
 });
 
 // Listens for new messages added to /messages/:documentId/original
