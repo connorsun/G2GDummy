@@ -28,20 +28,40 @@ exports.helloConner = onRequest((request, response) => {
   response.send("Hello Conner from Alec");
 });
 
-function fail(body, message) {
+/** fails formatted and returns 400 status
+ * @param {record} body message body
+ * @param {string} message error message
+ * @param {record} response http response
+ */
+function fail(body, message, response) {
   logger.info(JSON.stringify(body), {structuredData: true});
   response.send({status: 400, err: message});
 }
 
-async function getUid(authToken) {
-  let adminApp = firebaseAdmin.initializeApp({credential: firebaseAdmin.credential.cert(serviceAccount)}, 'admin');
-  const uinfo = await adminApp.auth().verifyIdToken(authToken);
-  return uinfo.uid;
-}
+/** returns the uid associated with the auth token given by the user
+ * @param {string} authToken user's authentication token
+ * @param {record} response http response
+ */
+// async function getUid(authToken, response) {
+//   const serviceAccount = require("path/to/serviceAccountKey.json");
+//   const adminApp = firebaseAdmin.initializeApp(
+//       {credential: firebaseAdmin.credential.cert(serviceAccount)}, "admin");
+//   const uinfo = await adminApp.auth().verifyIdToken(authToken)
+//       .catch((error) => {
+//         fail(undefined, "failed to authenticate user", response);
+//       });
+//   return uinfo.uid;
+// }
 
-function writeCal(authToken, data) {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-  for (let day of days) {
+/** writes to the user's calendar given calendar data
+ * @param {string} authToken user's authentication token
+ * @param {record} data calendar data
+ * @param {record} response http response
+ */
+function writeCal(authToken, data, response) {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday",
+    "Thursday", "Friday", "Saturday"];
+  for (const day of days) {
     if (data[day] === undefined) {
       fail("malformed request: cal req is missing day " + day);
       return;
@@ -59,9 +79,14 @@ function writeCal(authToken, data) {
   response.send({status: 200});
 }
 
-function writeInfo(authToken, data) {
+/** writes to the user's info given info data
+ * @param {string} authToken user's authentication token
+ * @param {record} data info data
+ * @param {record} response http response
+ */
+function writeInfo(authToken, data, response) {
   const infoFields = ["name", "deviceID"];
-  for (let field of infoFields) {
+  for (const field of infoFields) {
     if (data[field] === undefined) {
       fail("malformed request: info req is missing field " + field);
       return;
@@ -89,25 +114,25 @@ exports.writeDB = onRequest({cors: true}, async (request, response) => {
   }
   const authToken = body["userAuthToken"];
   if (authToken === undefined) {
-    fail(body, "missing request authentication token");
+    fail(body, "missing request authentication token", response);
     return;
   }
   const data = body["data"];
   if (data === undefined) {
-    fail(body, "missing request data");
+    fail(body, "missing request data", response);
     return;
   }
   const reqType = body["reqType"]; // write to calendar or user info?
   if (reqType === undefined) {
-    fail(body, "undefined request type");
+    fail(body, "undefined request type", response);
     return;
   }
   if (reqType === "calendar") {
-    writeCal(authToken, data);
+    writeCal(authToken, data, response);
   } else if (reqType === "info") {
-    writeInfo(authToken, data);
+    writeInfo(authToken, data, response);
   } else {
-    fail(body, "invalid request type: " + reqType);
+    fail(body, "invalid request type: " + reqType, response);
     return;
   }
 });
