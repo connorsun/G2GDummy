@@ -18,15 +18,15 @@ const firebaseAdmin = require("firebase-admin");
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
-exports.helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+// exports.helloWorld = onRequest((request, response) => {
+//   logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
 
-exports.helloConner = onRequest((request, response) => {
-  logger.info("Hello Alec!", {structuredData: true});
-  response.send("Hello Conner from Alec");
-});
+// exports.helloConner = onRequest((request, response) => {
+//   logger.info("Hello Alec!", {structuredData: true});
+//   response.send("Hello Conner from Alec");
+// });
 
 /** fails formatted and returns 400 status
  * @param {record} body message body
@@ -73,8 +73,8 @@ function writeCal(authToken, data, response) {
   // for now: have users manually send auth tokens
   const uid = authToken;
   const database = firebaseAdmin.database();
-  database.ref("users/" + uid).set({
-    data: data,
+  database.ref("users/" + uid).update({
+    calendar: data,
   });
   response.send({status: 200});
 }
@@ -98,8 +98,8 @@ function writeInfo(authToken, data, response) {
   // for now: have users manually send auth tokens
   const uid = authToken;
   const database = firebaseAdmin.database();
-  database.ref("users/" + uid).set({
-    data: data,
+  database.ref("users/" + uid).update({
+    info: data,
   });
   response.send({status: 200});
 }
